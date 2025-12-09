@@ -22,14 +22,15 @@
       const { useState, useEffect } = React;
 
       function HamburgueriaShop() {
-        const WHATSAPP_NUMBER = "5511921789893"; // DDI + DDD + número, sem espaços
+        const WHATSAPP_NUMBER = "5511921789893"; // DDI+DDD+número, sem espaços
 
         // produtos de exemplo
         const sampleProducts = [
           {
             id: "h1",
             name: "Santo burguer",
-            description: "Pão Australiano, smash 90g, cheddar fatiado, picles, molho da casa.",
+            description:
+              "Pão Australiano, smash 90g, cheddar fatiado, picles, molho da casa.",
             price: 18.5,
             img: "https://picsum.photos/seed/smash1/600/400",
             tags: ["Artesanal"],
@@ -37,7 +38,8 @@
           {
             id: "h2",
             name: "Oaklahoma smash",
-            description: "Pão brioche, smash 90g prensado com cebola, cheddar fatiado.",
+            description:
+              "Pão brioche, smash 90g prensado com cebola, cheddar fatiado.",
             price: 28.0,
             img: "https://picsum.photos/seed/bacon2/600/400",
             tags: ["especial", "bacon"],
@@ -45,7 +47,8 @@
           {
             id: "h3",
             name: "Cebola Sublime",
-            description: "Queijo cheddar, cebola crocante e maionese da casa.",
+            description:
+              "Queijo cheddar, cebola crocante e maionese da casa.",
             price: 22.0,
             img: "https://picsum.photos/seed/cheddar3/600/400",
             tags: ["cheddar"],
@@ -53,7 +56,8 @@
           {
             id: "h4",
             name: "Milagre duplo",
-            description: "Pão de brioche, 2x smash de 90g, rúcula, tomate seco.",
+            description:
+              "Pão de brioche, 2x smash de 90g, rúcula, tomate seco.",
             price: 21.0,
             img: "https://picsum.photos/seed/veggie4/600/400",
             tags: ["vegano", "leve"],
@@ -120,75 +124,85 @@
           subtotal > 0 && subtotal < 40 ? 6 : subtotal >= 40 ? 0 : 0;
         const total = subtotal + deliveryFee;
 
-       function handleCheckout(form) {
-  const order = {
-    id: `PED-${Date.now()}`,
-    items: cart,
-    subtotal,
-    deliveryFee,
-    total,
-    customer: form,
-    createdAt: new Date().toISOString(),
-  };
+        // envia pedido para o WhatsApp
+        function handleCheckout(form) {
+          const order = {
+            id: `PED-${Date.now()}`,
+            items: cart,
+            subtotal,
+            deliveryFee,
+            total,
+            customer: form,
+            createdAt: new Date().toISOString(),
+          };
 
-  // monta o texto da mensagem
-  const linhas = [];
-  linhas.push("*Novo pedido — Santo Lanche*");
-  linhas.push("");
-  linhas.push(`Nome: ${form.name}`);
-  linhas.push(`Telefone: ${form.phone}`);
-  linhas.push(`Endereço: ${form.address}`);
-  linhas.push(`Pagamento: ${form.payment === "dinheiro" ? "Dinheiro" : form.payment.toUpperCase()}`);
-  linhas.push("");
+          const linhas = [];
+          linhas.push("*Novo pedido — Santo Lanche*");
+          linhas.push("");
+          linhas.push(`Nome: ${form.name}`);
+          linhas.push(`Telefone: ${form.phone}`);
+          linhas.push(`Endereço: ${form.address}`);
+          linhas.push(
+            `Pagamento: ${
+              form.payment === "dinheiro"
+                ? "Dinheiro"
+                : form.payment.toUpperCase()
+            }`
+          );
+          linhas.push("");
 
-  if (cart.length > 0) {
-    linhas.push("*Itens do pedido:*");
-    cart.forEach((item) => {
-      linhas.push(
-        `- ${item.qty}x ${item.name} — R$ ${(item.price * item.qty)
-          .toFixed(2)
-          .replace(".", ",")}`
-      );
-    });
-    linhas.push("");
-  }
+          if (cart.length > 0) {
+            linhas.push("*Itens do pedido:*");
+            cart.forEach((item) => {
+              linhas.push(
+                `- ${item.qty}x ${item.name} — R$ ${(item.price * item.qty)
+                  .toFixed(2)
+                  .replace(".", ",")}`
+              );
+            });
+            linhas.push("");
+          }
 
-  linhas.push(`Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`);
-  linhas.push(
-    `Entrega: ${
-      deliveryFee === 0
-        ? "Grátis"
-        : "R$ " + deliveryFee.toFixed(2).replace(".", ",")
-    }`
-  );
-  linhas.push(`Total: *R$ ${total.toFixed(2).replace(".", ",")}*`);
-  linhas.push("");
-  linhas.push("Enviado pelo site santo-lanche.vercel.app");
+          linhas.push(
+            `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`
+          );
+          linhas.push(
+            `Entrega: ${
+              deliveryFee === 0
+                ? "Grátis"
+                : "R$ " + deliveryFee.toFixed(2).replace(".", ",")
+            }`
+          );
+          linhas.push(
+            `Total: *R$ ${total.toFixed(2).replace(".", ",")}*`
+          );
+          linhas.push("");
+          linhas.push("Enviado pelo site santolanche.netlify.app");
 
-  const mensagem = encodeURIComponent(linhas.join("\n"));
-  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`;
+          const mensagem = encodeURIComponent(linhas.join("\n"));
+          const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`;
 
-  // abre o WhatsApp em nova aba
-  window.open(url, "_blank");
+          // abre o WhatsApp em nova aba
+          window.open(url, "_blank");
 
-  // mantém o comportamento antigo (limpar carrinho e mostrar toast)
-  clearCart();
-  setCheckoutOpen(false);
-  setOrderConfirmed(order);
-  try {
-    localStorage.setItem("last_order", JSON.stringify(order));
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-
+          // comportamento antigo (limpar carrinho e toast)
+          clearCart();
+          setCheckoutOpen(false);
+          setOrderConfirmed(order);
+          try {
+            localStorage.setItem("last_order", JSON.stringify(order));
+          } catch (e) {
+            console.error(e);
+          }
+        }
 
         const uniqueTags = Array.from(new Set(products.flatMap((p) => p.tags)));
         const filteredProducts = products.filter((p) => {
           if (
             search &&
-            !`${p.name} ${p.description}`.toLowerCase().includes(search.toLowerCase())
+            !`${p.name} ${p.description}`
+              .toLowerCase()
+              .includes(search.toLowerCase())
           )
             return false;
           if (filterTag && !p.tags.includes(filterTag)) return false;
@@ -270,7 +284,8 @@
             </header>
 
             {/* MAIN */}
-            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+              {/* pb-24 para não ficar atrás da barra fixa */}
               <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* LADO ESQUERDO */}
                 <div className="md:col-span-1">
@@ -399,21 +414,9 @@
                     </div>
                   )}
 
-                  <div className="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <p className="text-sm text-gray-600">
-                      Dúvidas? Fale no WhatsApp: (11) 92178-9893
-                    </p>
-                    <button
-                      onClick={() => setCheckoutOpen(true)}
-                      disabled={cart.length === 0}
-                      className={`px-4 py-2 rounded-md text-sm font-semibold ${
-                        cart.length === 0
-                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
-                          : "bg-indigo-600 text-white"
-                      }`}
-                    >
-                      Finalizar pedido — R$ {total.toFixed(2).replace(".", ",")}
-                    </button>
+                  {/* texto de dúvidas (botão de finalizar vai na barra fixa) */}
+                  <div className="mt-8 text-sm text-gray-600">
+                    Dúvidas? Fale no WhatsApp: (11) 92178-9893
                   </div>
                 </div>
               </section>
@@ -632,7 +635,8 @@
                     Pedido {orderConfirmed.id} confirmado. Obrigado!
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
-                    Você pode salvar o pedido localmente enquanto não integrar com um servidor.
+                    Você pode salvar o pedido localmente enquanto não integrar
+                    com um servidor.
                   </div>
                   <div className="mt-3 text-right">
                     <button
@@ -649,11 +653,39 @@
               <footer className="mt-12 text-center text-gray-600">
                 <p>© {new Date().getFullYear()} Santo Lanche — feito com ❤️</p>
               </footer>
+
+              {/* BARRA FIXA DE FINALIZAÇÃO (BOTTOM) */}
+              {cart.length > 0 && (
+                <div className="fixed inset-x-0 bottom-0 z-40 bg-white border-t border-gray-200 shadow-lg">
+                  <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="text-xs sm:text-sm">
+                      <div className="font-semibold text-gray-900">
+                        Total do pedido
+                      </div>
+                      <div className="text-gray-700">
+                        R$ {total.toFixed(2).replace(".", ",")}{" "}
+                        {deliveryFee === 0
+                          ? "· entrega grátis"
+                          : `· entrega: R$ ${deliveryFee
+                              .toFixed(2)
+                              .replace(".", ",")}`}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setCheckoutOpen(true)}
+                      className="px-4 sm:px-6 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
+                    >
+                      Finalizar pedido
+                    </button>
+                  </div>
+                </div>
+              )}
             </main>
           </div>
         );
-      
-        }
+      }
+
       const root = ReactDOM.createRoot(document.getElementById("root"));
       root.render(<HamburgueriaShop />);
     </script>
