@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Santo Lanche — Hamburgueria Artesanal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- React 18 e ReactDOM via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel para entender JSX no navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      function HamburgueriaShop() {
+        // produtos de exemplo
+        const sampleProducts = [
+          {
+            id: "h1",
+            name: "Santo burguer",
+            description: "Pão Australiano, smash 90g, cheddar fatiado, picles, molho da casa.",
+            price: 18.5,
+            img: "https://picsum.photos/seed/smash1/600/400",
+            tags: ["Artesanal"],
+          },
+          {
+            id: "h2",
+            name: "Oaklahoma smash",
+            description: "Pão brioche, smash 90g prensado com cebola, cheddar fatiado.",
+            price: 28.0,
+            img: "https://picsum.photos/seed/bacon2/600/400",
+            tags: ["especial", "bacon"],
+          },
+          {
+            id: "h3",
+            name: "Cebola Sublime",
+            description: "Queijo cheddar, cebola crocante e maionese da casa.",
+            price: 22.0,
+            img: "https://picsum.photos/seed/cheddar3/600/400",
+            tags: ["cheddar"],
+          },
+          {
+            id: "h4",
+            name: "Milagre duplo",
+            description: "Pão de brioche, 2x smash de 90g, rúcula, tomate seco.",
+            price: 21.0,
+            img: "https://picsum.photos/seed/veggie4/600/400",
+            tags: ["vegano", "leve"],
+          },
+        ];
+
+        const [products] = useState(sampleProducts);
+        const [cart, setCart] = useState([]);
+        const [isCartOpen, setIsCartOpen] = useState(false);
+        const [search, setSearch] = useState("");
+        const [filterTag, setFilterTag] = useState("");
+        const [checkoutOpen, setCheckoutOpen] = useState(false);
+        const [orderConfirmed, setOrderConfirmed] = useState(null);
+
+        // carregar carrinho do localStorage
+        useEffect(() => {
+          try {
+            const stored = localStorage.getItem("cart_v1");
+            if (stored) {
+              setCart(JSON.parse(stored));
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }, []);
+
+        // salvar carrinho a cada mudança
+        useEffect(() => {
+          try {
+            localStorage.setItem("cart_v1", JSON.stringify(cart));
+          } catch (e) {
+            console.error(e);
+          }
+        }, [cart]);
+
+        function addToCart(product, qty = 1) {
+          setCart((prev) => {
+            const existing = prev.find((p) => p.id === product.id);
+            if (existing) {
+              return prev.map((p) =>
+                p.id === product.id ? { ...p, qty: p.qty + qty } : p
+              );
+            }
+            return [...prev, { ...product, qty }];
+          });
+          setIsCartOpen(true);
+        }
+
+        function updateQty(id, qty) {
+          if (qty <= 0) return removeFromCart(id);
+          setCart((prev) => prev.map((p) => (p.id === id ? { ...p, qty } : p)));
+        }
+
+        function removeFromCart(id) {
+          setCart((prev) => prev.filter((p) => p.id !== id));
+        }
+
+        function clearCart() {
+          setCart([]);
+        }
+
+        const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+        const deliveryFee =
+          subtotal > 0 && subtotal < 40 ? 6 : subtotal >= 40 ? 0 : 0;
+        const total = subtotal + deliveryFee;
+
+        function handleCheckout(form) {
+          const order = {
+            id: `PED-${Date.now()}`,
+            items: cart,
+            subtotal,
+            deliveryFee,
+            total,
+            customer: form,
+            createdAt: new Date().toISOString(),
+          };
+
+          clearCart();
+          setCheckoutOpen(false);
+          setOrderConfirmed(order);
+          try {
+            localStorage.setItem("last_order", JSON.stringify(order));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        const uniqueTags = Array.from(new Set(products.flatMap((p) => p.tags)));
+        const filteredProducts = products.filter((p) => {
+          if (
+            search &&
+            !`${p.name} ${p.description}`.toLowerCase().includes(search.toLowerCase())
+          )
+            return false;
+          if (filterTag && !p.tags.includes(filterTag)) return false;
+          return true;
+        });
+
+        return (
+          <div className="min-h-screen bg-gray-50 text-gray-900">
+            {/* HEADER */}
+            <header className="bg-white shadow">
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="rounded-full bg-yellow-400 w-12 h-12 flex items-center justify-center font-bold text-white">
+                      🍔
+                    </div>
+                    <div>
+                      <h1 className="text-xl font-extrabold">Santo Lanche</h1>
+                      <p className="text-sm text-gray-500">
+                        Delivery &amp; Retirada — Aberto hoje
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    {/* busca desktop */}
+                    <div className="hidden md:flex items-center gap-2">
+                      <input
+                        aria-label="Pesquisar"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="border rounded px-3 py-2 text-sm w-56"
+                        placeholder="Buscar por burger ou ingrediente..."
+                      />
+                      <select
+                        value={filterTag}
+                        onChange={(e) => setFilterTag(e.target.value)}
+                        className="border rounded px-3 py-2 text-sm"
+                      >
+                        <option value="">Todos</option>
+                        {uniqueTags.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* botão carrinho */}
+                    <button
+                      onClick={() => setIsCartOpen((s) => !s)}
+                      className="relative bg-indigo-600 text-white px-3 py-2 rounded-md text-sm flex items-center gap-2"
+                      aria-label="Abrir carrinho"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M3 3h2l.4 2M7 13h10l4-8H5.4"
+                        />
+                      </svg>
+                      Carrinho
+                      {cart.length > 0 && (
+                        <span className="ml-2 bg-white text-indigo-600 rounded-full px-2 py-0.5 text-xs font-semibold">
+                          {cart.length}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {/* MAIN */}
+            <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* LADO ESQUERDO */}
+                <div className="md:col-span-1">
+                  <div className="rounded-lg bg-white p-4 shadow">
+                    <h2 className="text-lg font-bold">Faça seu pedido</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Escolha seu hambúrguer e finalize no checkout.
+                    </p>
+
+                    {/* busca mobile */}
+                    <div className="mt-4 md:hidden">
+                      <input
+                        aria-label="Pesquisar mobile"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="border rounded px-3 py-2 text-sm w-full"
+                        placeholder="Buscar..."
+                      />
+                      <div className="mt-3 flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => setFilterTag("")}
+                          className={`px-3 py-1 rounded text-sm border ${
+                            filterTag === ""
+                              ? "bg-indigo-600 text-white"
+                              : "bg-white"
+                          }`}
+                        >
+                          Todos
+                        </button>
+                        {uniqueTags.map((t) => (
+                          <button
+                            key={t}
+                            onClick={() => setFilterTag(t)}
+                            className={`px-3 py-1 rounded text-sm border ${
+                              filterTag === t
+                                ? "bg-indigo-600 text-white"
+                                : "bg-white"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 border-t pt-4">
+                      <h3 className="font-semibold">Horário</h3>
+                      <p className="text-sm text-gray-500">
+                        Entrega das 18:00 às 22:30 — Retirada 18:00 às 23:00
+                      </p>
+                    </div>
+
+                    <div className="mt-4 border-t pt-4">
+                      <h3 className="font-semibold">Promoções</h3>
+                      <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                        <li>✅ Frete grátis acima de R$40</li>
+                        <li>✅ Cupom de desconto 10% off</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="hidden md:block mt-4 rounded-lg bg-white p-4 shadow">
+                    <h3 className="text-sm font-semibold">Contato</h3>
+                    <p className="text-sm text-gray-600 mt-2">
+                      (11) 92178-9893 — Restaurante — Rua dos crisântemos, 189,
+                      PQ. Internacional, Campo Limpo Paulista.
+                    </p>
+                    <a
+                      className="text-indigo-600 text-sm mt-2 inline-block"
+                      href="https://maps.app.goo.gl/1BVbL2bjmzZmdCrS8"
+                      target="_blank"
+                    >
+                      Ver no Google Maps
+                    </a>
+                  </div>
+                </div>
+
+                {/* LADO DIREITO: PRODUTOS */}
+                <div className="md:col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredProducts.map((p) => (
+                      <article
+                        key={p.id}
+                        className="bg-white rounded-lg shadow overflow-hidden flex flex-col"
+                      >
+                        <img
+                          src={p.img}
+                          alt={p.name}
+                          className="w-full h-44 object-cover"
+                        />
+                        <div className="p-4 flex-1 flex flex-col">
+                          <div>
+                            <h4 className="font-bold text-lg">{p.name}</h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {p.description}
+                            </p>
+                          </div>
+
+                          <div className="mt-4 flex items-end justify-between">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl font-extrabold">
+                                R$ {p.price.toFixed(2).replace(".", ",")}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                / un
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => addToCart(p, 1)}
+                                className="bg-green-600 text-white px-3 py-2 rounded-md text-sm font-semibold"
+                              >
+                                Adicionar
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+
+                  {filteredProducts.length === 0 && (
+                    <div className="mt-8 bg-white rounded shadow p-6 text-center text-gray-600">
+                      Nenhum produto encontrado.
+                    </div>
+                  )}
+
+                  <div className="mt-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <p className="text-sm text-gray-600">
+                      Dúvidas? Fale no WhatsApp: (11) 92178-9893
+                    </p>
+                    <button
+                      onClick={() => setCheckoutOpen(true)}
+                      disabled={cart.length === 0}
+                      className={`px-4 py-2 rounded-md text-sm font-semibold ${
+                        cart.length === 0
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-indigo-600 text-white"
+                      }`}
+                    >
+                      Finalizar pedido — R$ {total.toFixed(2).replace(".", ",")}
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              {/* DRAWER DO CARRINHO */}
+              <aside
+                className={`fixed right-0 top-0 h-full w-full md:w-96 bg-white shadow-lg transform transition-transform duration-300 ${
+                  isCartOpen ? "translate-x-0" : "translate-x-full"
+                }`}
+                aria-hidden={!isCartOpen}
+              >
+                <div className="p-4 border-b flex items-center justify-between">
+                  <h3 className="font-bold">Seu Carrinho</h3>
+                  <button
+                    onClick={() => setIsCartOpen(false)}
+                    className="text-gray-600"
+                  >
+                    Fechar
+                  </button>
+                </div>
+
+                <div className="p-4 overflow-y-auto h-[calc(100%-160px)]">
+                  {cart.length === 0 && (
+                    <p className="text-sm text-gray-600">Carrinho vazio.</p>
+                  )}
+                  <ul className="space-y-4">
+                    {cart.map((i) => (
+                      <li key={i.id} className="flex items-center gap-3">
+                        <img
+                          src={i.img}
+                          alt={i.name}
+                          className="w-20 h-16 object-cover rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-semibold">{i.name}</h4>
+                            <button
+                              onClick={() => removeFromCart(i.id)}
+                              className="text-sm text-red-600"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-600">
+                            R$ {i.price.toFixed(2).replace(".", ",")}
+                          </p>
+                          <div className="mt-2 flex items-center gap-2">
+                            <button
+                              onClick={() => updateQty(i.id, i.qty - 1)}
+                              className="px-2 py-1 border rounded"
+                            >
+                              -
+                            </button>
+                            <span className="px-3 py-1 border rounded">
+                              {i.qty}
+                            </span>
+                            <button
+                              onClick={() => updateQty(i.id, i.qty + 1)}
+                              className="px-2 py-1 border rounded"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="p-4 border-t">
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Subtotal</span>
+                    <span>R$ {subtotal.toFixed(2).replace(".", ",")}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Entrega</span>
+                    <span>
+                      {deliveryFee === 0
+                        ? "Grátis"
+                        : `R$ ${deliveryFee.toFixed(2).replace(".", ",")}`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between mt-2 font-bold">
+                    <span>Total</span>
+                    <span>R$ {total.toFixed(2).replace(".", ",")}</span>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setCheckoutOpen(true);
+                        setIsCartOpen(false);
+                      }}
+                      disabled={cart.length === 0}
+                      className={`flex-1 px-4 py-2 rounded-md font-semibold ${
+                        cart.length === 0
+                          ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                          : "bg-indigo-600 text-white"
+                      }`}
+                    >
+                      Finalizar
+                    </button>
+                    <button
+                      onClick={() => clearCart()}
+                      className="px-4 py-2 rounded-md border"
+                    >
+                      Limpar
+                    </button>
+                  </div>
+                </div>
+              </aside>
+
+              {/* MODAL CHECKOUT */}
+              {checkoutOpen && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg w-full max-w-lg p-6">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-bold">Finalizar Pedido</h3>
+                      <button
+                        onClick={() => setCheckoutOpen(false)}
+                        className="text-gray-600"
+                      >
+                        Fechar
+                      </button>
+                    </div>
+
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        const fd = new FormData(e.target);
+                        const form = {
+                          name: fd.get("name"),
+                          phone: fd.get("phone"),
+                          address: fd.get("address"),
+                          payment: fd.get("payment"),
+                        };
+                        handleCheckout(form);
+                      }}
+                      className="mt-4 space-y-3"
+                    >
+                      <div>
+                        <label className="text-sm font-medium">Nome</label>
+                        <input
+                          name="name"
+                          required
+                          className="w-full border rounded px-3 py-2 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">
+                          Telefone (WhatsApp)
+                        </label>
+                        <input
+                          name="phone"
+                          required
+                          className="w-full border rounded px-3 py-2 mt-1"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">
+                          Endereço (ou Retirar)
+                        </label>
+                        <input
+                          name="address"
+                          required
+                          className="w-full border rounded px-3 py-2 mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Pagamento</label>
+                        <select
+                          name="payment"
+                          defaultValue="dinheiro"
+                          className="w-full border rounded px-3 py-2 mt-1"
+                        >
+                          <option value="dinheiro">Dinheiro</option>
+                          <option value="pix">PIX</option>
+                          <option value="cartao">Cartão na entrega</option>
+                        </select>
+                      </div>
+
+                      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mt-4">
+                        <div>
+                          <div className="text-sm text-gray-600">Total</div>
+                          <div className="font-bold">
+                            R$ {total.toFixed(2).replace(".", ",")}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setCheckoutOpen(false)}
+                            className="px-4 py-2 border rounded"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-green-600 text-white rounded font-semibold"
+                          >
+                            Confirmar pedido
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* CONFIRMAÇÃO DO PEDIDO */}
+              {orderConfirmed && (
+                <div className="fixed left-1/2 -translate-x-1/2 bottom-6 bg-white shadow rounded-lg p-4 z-50 max-w-sm w-full">
+                  <div className="font-bold">Pedido enviado!</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Pedido {orderConfirmed.id} confirmado. Obrigado!
+                  </div>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Você pode salvar o pedido localmente enquanto não integrar com um servidor.
+                  </div>
+                  <div className="mt-3 text-right">
+                    <button
+                      onClick={() => setOrderConfirmed(null)}
+                      className="text-indigo-600 text-sm"
+                    >
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* FOOTER */}
+              <footer className="mt-12 text-center text-gray-600">
+                <p>© {new Date().getFullYear()} Santo Lanche — feito com ❤️</p>
+              </footer>
+            </main>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<HamburgueriaShop />);
+    </script>
+  </body>
+</html>
