@@ -22,6 +22,8 @@
       const { useState, useEffect } = React;
 
       function HamburgueriaShop() {
+        const WHATSAPP_NUMBER = "5511921789893"; // DDI + DDD + número, sem espaços
+
         // produtos de exemplo
         const sampleProducts = [
           {
@@ -118,26 +120,69 @@
           subtotal > 0 && subtotal < 40 ? 6 : subtotal >= 40 ? 0 : 0;
         const total = subtotal + deliveryFee;
 
-        function handleCheckout(form) {
-          const order = {
-            id: `PED-${Date.now()}`,
-            items: cart,
-            subtotal,
-            deliveryFee,
-            total,
-            customer: form,
-            createdAt: new Date().toISOString(),
-          };
+       function handleCheckout(form) {
+  const order = {
+    id: `PED-${Date.now()}`,
+    items: cart,
+    subtotal,
+    deliveryFee,
+    total,
+    customer: form,
+    createdAt: new Date().toISOString(),
+  };
 
-          clearCart();
-          setCheckoutOpen(false);
-          setOrderConfirmed(order);
-          try {
-            localStorage.setItem("last_order", JSON.stringify(order));
-          } catch (e) {
-            console.error(e);
-          }
-        }
+  // monta o texto da mensagem
+  const linhas = [];
+  linhas.push("*Novo pedido — Santo Lanche*");
+  linhas.push("");
+  linhas.push(`Nome: ${form.name}`);
+  linhas.push(`Telefone: ${form.phone}`);
+  linhas.push(`Endereço: ${form.address}`);
+  linhas.push(`Pagamento: ${form.payment === "dinheiro" ? "Dinheiro" : form.payment.toUpperCase()}`);
+  linhas.push("");
+
+  if (cart.length > 0) {
+    linhas.push("*Itens do pedido:*");
+    cart.forEach((item) => {
+      linhas.push(
+        `- ${item.qty}x ${item.name} — R$ ${(item.price * item.qty)
+          .toFixed(2)
+          .replace(".", ",")}`
+      );
+    });
+    linhas.push("");
+  }
+
+  linhas.push(`Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`);
+  linhas.push(
+    `Entrega: ${
+      deliveryFee === 0
+        ? "Grátis"
+        : "R$ " + deliveryFee.toFixed(2).replace(".", ",")
+    }`
+  );
+  linhas.push(`Total: *R$ ${total.toFixed(2).replace(".", ",")}*`);
+  linhas.push("");
+  linhas.push("Enviado pelo site santo-lanche.vercel.app");
+
+  const mensagem = encodeURIComponent(linhas.join("\n"));
+  const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`;
+
+  // abre o WhatsApp em nova aba
+  window.open(url, "_blank");
+
+  // mantém o comportamento antigo (limpar carrinho e mostrar toast)
+  clearCart();
+  setCheckoutOpen(false);
+  setOrderConfirmed(order);
+  try {
+    localStorage.setItem("last_order", JSON.stringify(order));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+
 
         const uniqueTags = Array.from(new Set(products.flatMap((p) => p.tags)));
         const filteredProducts = products.filter((p) => {
@@ -607,8 +652,8 @@
             </main>
           </div>
         );
-      }
-
+      
+        }
       const root = ReactDOM.createRoot(document.getElementById("root"));
       root.render(<HamburgueriaShop />);
     </script>
