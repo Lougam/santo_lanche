@@ -24,43 +24,375 @@
       function HamburgueriaShop() {
         const WHATSAPP_NUMBER = "5511921789893"; // DDI+DDD+número, sem espaços
 
-        // produtos de exemplo
+        // CARDÁPIO COMPLETO
         const sampleProducts = [
+          // =========================
+          // Lanches - Simples
+          // =========================
           {
-            id: "h1",
-            name: "Santo burguer",
+            id: "santo-burguer-simples",
+            category: "lanches",
+            name: "Santo Burguer (Simples)",
             description:
-              "Pão Australiano, smash 90g, cheddar fatiado, picles, molho da casa.",
-            price: 18.5,
-            img: "https://picsum.photos/seed/smash1/600/400",
-            tags: ["Artesanal"],
+              "Pão Australiano, smash de 90g, cheddar fatiado, alface, tomate, molho da casa.",
+            price: 19.0,
+            img: "/imagens/santo-burguer.jpg",
+            tags: ["lanche", "simples"],
           },
           {
-            id: "h2",
-            name: "Oaklahoma smash",
+            id: "oklahoma-smash-simples",
+            category: "lanches",
+            name: "Oklahoma Smash (Simples)",
             description:
-              "Pão brioche, smash 90g prensado com cebola, cheddar fatiado.",
+              "Pão brioche, smash de 90g prensado com cebola, queijo prato, picles, molho da casa.",
+            price: 20.0,
+            img: "/imagens/oklahoma-smash.jpg",
+            tags: ["lanche", "simples"],
+          },
+          {
+            id: "milagre-duplo-simples",
+            category: "lanches",
+            name: "Milagre Duplo (Simples)",
+            description:
+              "Pão brioche, 2x smash de 90g, queijo prato, alface, tomate, molho da casa.",
+            price: 25.0,
+            img: "/imagens/milagre-duplo.jpg",
+            tags: ["lanche", "simples"],
+          },
+          {
+            id: "divino-cheddar-simples",
+            category: "lanches",
+            name: "Divino Cheddar (Simples)",
+            description:
+              "Pão brioche, 2x smash de 90g, cheddar duplo fatiado, bacon fatiado, molho da casa.",
             price: 28.0,
-            img: "https://picsum.photos/seed/bacon2/600/400",
-            tags: ["especial", "bacon"],
+            img: "/imagens/divino-cheddar.jpg",
+            tags: ["lanche", "simples", "cheddar"],
           },
           {
-            id: "h3",
-            name: "Cebola Sublime",
+            id: "cebola-sublime-simples",
+            category: "lanches",
+            name: "Cebola Sublime (Simples)",
             description:
-              "Queijo cheddar, cebola crocante e maionese da casa.",
-            price: 22.0,
-            img: "https://picsum.photos/seed/cheddar3/600/400",
-            tags: ["cheddar"],
+              "Pão australiano, 2x smash 90g, 3 anéis de cebola empanada, cheddar fatiado, cebola caramelizada, molho da casa.",
+            price: 30.0,
+            img: "/imagens/cebola-sublime.jpg",
+            tags: ["lanche", "simples", "cebola"],
           },
           {
-            id: "h4",
-            name: "Milagre duplo",
+            id: "majestoso-simples",
+            category: "lanches",
+            name: "Majestoso (Simples)",
             description:
-              "Pão de brioche, 2x smash de 90g, rúcula, tomate seco.",
-            price: 21.0,
-            img: "https://picsum.photos/seed/veggie4/600/400",
-            tags: ["vegano", "leve"],
+              "Pão australiano, 3x smash 90g, cheddar fatiado, picles, bacon, molho da casa.",
+            price: 35.0,
+            img: "/imagens/majestoso.jpg",
+            tags: ["lanche", "simples", "bacon"],
+          },
+
+          // =========================
+          // Lanches - Combos
+          // =========================
+          {
+            id: "santo-burguer-combo",
+            category: "lanches",
+            name: "Santo Burguer (Combo)",
+            description:
+              "Santo Burguer + porção de batata + refrigerante lata à escolha.",
+            price: 31.0,
+            img: "/imagens/santo-burguer.jpg",
+            tags: ["lanche", "combo"],
+          },
+          {
+            id: "oklahoma-smash-combo",
+            category: "lanches",
+            name: "Oklahoma Smash (Combo)",
+            description:
+              "Oklahoma Smash + porção de batata + refrigerante lata à escolha.",
+            price: 32.0,
+            img: "/imagens/oklahoma-smash.jpg",
+            tags: ["lanche", "combo"],
+          },
+          {
+            id: "milagre-duplo-combo",
+            category: "lanches",
+            name: "Milagre Duplo (Combo)",
+            description:
+              "Milagre Duplo + porção de batata + refrigerante lata à escolha.",
+            price: 37.0,
+            img: "/imagens/milagre-duplo.jpg",
+            tags: ["lanche", "combo"],
+          },
+          {
+            id: "divino-cheddar-combo",
+            category: "lanches",
+            name: "Divino Cheddar (Combo)",
+            description:
+              "Divino Cheddar + porção de batata + refrigerante lata à escolha.",
+            price: 40.0,
+            img: "/imagens/divino-cheddar.jpg",
+            tags: ["lanche", "combo", "cheddar"],
+          },
+          {
+            id: "cebola-sublime-combo",
+            category: "lanches",
+            name: "Cebola Sublime (Combo)",
+            description:
+              "Cebola Sublime + porção de batata + refrigerante lata à escolha.",
+            price: 42.0,
+            img: "/imagens/cebola-sublime.jpg",
+            tags: ["lanche", "combo", "cebola"],
+          },
+          {
+            id: "majestoso-combo",
+            category: "lanches",
+            name: "Majestoso (Combo)",
+            description:
+              "Majestoso + porção de batata + refrigerante lata à escolha.",
+            price: 47.0,
+            img: "/imagens/majestoso.jpg",
+            tags: ["lanche", "combo", "bacon"],
+          },
+
+          // =========================
+          // PORÇÕES / BATATAS
+          // =========================
+          {
+            id: "batata-m-simples",
+            category: "porcoes",
+            name: "Batata frita M simples",
+            description: "Porção de batata frita tamanho M.",
+            price: 12.0,
+            img: "/imagens/batata-m-simples.jpg",
+            tags: ["porção", "batata"],
+          },
+          {
+            id: "batata-m-cheddar-bacon",
+            category: "porcoes",
+            name: "Batata M c/ cheddar e bacon",
+            description: "Batata frita M com cheddar cremoso e bacon.",
+            price: 19.0,
+            img: "/imagens/batata-m-cheddar-bacon.jpg",
+            tags: ["porção", "batata", "cheddar", "bacon"],
+          },
+          {
+            id: "batata-m-requeijao-bacon",
+            category: "porcoes",
+            name: "Batata M c/ requeijão e bacon",
+            description: "Batata frita M com requeijão cremoso e bacon.",
+            price: 19.0,
+            img: "/imagens/batata-m-requeijao-bacon.jpg",
+            tags: ["porção", "batata", "bacon"],
+          },
+          {
+            id: "batata-g-simples",
+            category: "porcoes",
+            name: "Batata frita G simples",
+            description: "Porção grande de batata frita.",
+            price: 18.0,
+            img: "/imagens/batata-g-simples.jpg",
+            tags: ["porção", "batata"],
+          },
+          {
+            id: "batata-g-cheddar-bacon",
+            category: "porcoes",
+            name: "Batata G c/ cheddar e bacon",
+            description: "Batata frita G com cheddar cremoso e bacon.",
+            price: 26.0,
+            img: "/imagens/batata-g-cheddar-bacon.jpg",
+            tags: ["porção", "batata", "cheddar", "bacon"],
+          },
+          {
+            id: "batata-g-requeijao-bacon",
+            category: "porcoes",
+            name: "Batata G c/ requeijão e bacon",
+            description: "Batata frita G com requeijão cremoso e bacon.",
+            price: 26.0,
+            img: "/imagens/batata-g-requeijao-bacon.jpg",
+            tags: ["porção", "batata", "bacon"],
+          },
+          {
+            id: "aneis-de-cebola-porcao",
+            category: "porcoes",
+            name: "Anéis de cebola",
+            description: "Porção de anéis de cebola empanados.",
+            price: 18.0,
+            img: "/imagens/aneis-de-cebola-porcao.jpg",
+            tags: ["porção", "cebola"],
+          },
+
+          // =========================
+          // ADICIONAIS
+          // =========================
+          {
+            id: "adicional-smash-90",
+            category: "adicionais",
+            name: "Adicional smash 90g",
+            description: "Hambúrguer smash de 90g extra para o seu lanche.",
+            price: 5.0,
+            img: "/imagens/adicional-smash-90.jpg",
+            tags: ["adicional"],
+          },
+          {
+            id: "adicional-bacon-fatiado",
+            category: "adicionais",
+            name: "Adicional bacon fatiado",
+            description: "Fatia extra de bacon crocante.",
+            price: 2.0,
+            img: "/imagens/adicional-bacon-fatiado.jpg",
+            tags: ["adicional", "bacon"],
+          },
+          {
+            id: "adicional-picles",
+            category: "adicionais",
+            name: "Adicional picles",
+            description: "Porção extra de picles.",
+            price: 2.0,
+            img: "/imagens/adicional-picles.jpg",
+            tags: ["adicional"],
+          },
+          {
+            id: "adicional-cheddar-fatiado",
+            category: "adicionais",
+            name: "Adicional cheddar fatiado",
+            description: "Fatia extra de cheddar.",
+            price: 1.0,
+            img: "/imagens/adicional-cheddar-fatiado.jpg",
+            tags: ["adicional", "cheddar"],
+          },
+          {
+            id: "adicional-cebola-caramelizada",
+            category: "adicionais",
+            name: "Adicional cebola caramelizada",
+            description: "Porção extra de cebola caramelizada.",
+            price: 4.0,
+            img: "/imagens/adicional-cebola-caramelizada.jpg",
+            tags: ["adicional", "cebola"],
+          },
+          {
+            id: "adicional-aneis-de-cebola",
+            category: "adicionais",
+            name: "Adicional anéis de cebola",
+            description: "Anéis de cebola extras para seu lanche.",
+            price: 3.0,
+            img: "/imagens/adicional-aneis-de-cebola.jpg",
+            tags: ["adicional", "cebola"],
+          },
+          {
+            id: "adicional-ovo",
+            category: "adicionais",
+            name: "Adicional ovo",
+            description: "Ovo extra para o seu lanche.",
+            price: 1.0,
+            img: "/imagens/adicional-ovo.jpg",
+            tags: ["adicional"],
+          },
+
+          // =========================
+          // BEBIDAS
+          // =========================
+          {
+            id: "agua-500",
+            category: "bebidas",
+            name: "Água 500ml",
+            description: "Água mineral 500ml.",
+            price: 3.0,
+            img: "/imagens/agua-500.jpg",
+            tags: ["bebida", "água"],
+          },
+          {
+            id: "agua-gas-500",
+            category: "bebidas",
+            name: "Água com gás 500ml",
+            description: "Água mineral com gás 500ml.",
+            price: 4.0,
+            img: "/imagens/agua-gas-500.jpg",
+            tags: ["bebida", "água"],
+          },
+          {
+            id: "guarana-antarctica-350",
+            category: "bebidas",
+            name: "Guaraná Antarctica 350ml",
+            description: "Refrigerante lata 350ml.",
+            price: 7.0,
+            img: "/imagens/guarana-antarctica-350.jpg",
+            tags: ["bebida", "refrigerante"],
+          },
+          {
+            id: "coca-350",
+            category: "bebidas",
+            name: "Coca-Cola 350ml",
+            description: "Refrigerante lata 350ml.",
+            price: 7.0,
+            img: "/imagens/coca-350.jpg",
+            tags: ["bebida", "refrigerante"],
+          },
+          {
+            id: "coca-zero-350",
+            category: "bebidas",
+            name: "Coca-Cola Zero 350ml",
+            description: "Refrigerante lata 350ml.",
+            price: 7.0,
+            img: "/imagens/coca-zero-350.jpg",
+            tags: ["bebida", "refrigerante"],
+          },
+          {
+            id: "fanta-uva-350",
+            category: "bebidas",
+            name: "Fanta Uva 350ml",
+            description: "Refrigerante lata 350ml.",
+            price: 7.0,
+            img: "/imagens/fanta-uva-350.jpg",
+            tags: ["bebida", "refrigerante"],
+          },
+          {
+            id: "fanta-laranja-350",
+            category: "bebidas",
+            name: "Fanta Laranja 350ml",
+            description: "Refrigerante lata 350ml.",
+            price: 7.0,
+            img: "/imagens/fanta-laranja-350.jpg",
+            tags: ["bebida", "refrigerante"],
+          },
+          {
+            id: "sprite-350",
+            category: "bebidas",
+            name: "Sprite 350ml",
+            description: "Refrigerante lata 350ml.",
+            price: 7.0,
+            img: "/imagens/sprite-350.jpg",
+            tags: ["bebida", "refrigerante"],
+          },
+          {
+            id: "coca-2l",
+            category: "bebidas",
+            name: "Coca-Cola 2L",
+            description: "Refrigerante garrafa 2 litros.",
+            price: 16.0,
+            img: "/imagens/coca-2l.jpg",
+            tags: ["bebida", "refrigerante", "familia"],
+          },
+
+          // =========================
+          // CERVEJAS
+          // =========================
+          {
+            id: "brahma-puro-malte-350",
+            category: "cervejas",
+            name: "Brahma Puro Malte lata 350ml",
+            description: "Cerveja Brahma Puro Malte lata 350ml.",
+            price: 8.0,
+            img: "/imagens/brahma-puro-malte-350.jpg",
+            tags: ["bebida", "cerveja"],
+          },
+          {
+            id: "heineken-long-neck-330",
+            category: "cervejas",
+            name: "Heineken long neck 330ml",
+            description: "Cerveja Heineken long neck 330ml.",
+            price: 12.0,
+            img: "/imagens/heineken-long-neck-330.jpg",
+            tags: ["bebida", "cerveja"],
           },
         ];
 
@@ -137,7 +469,11 @@
           };
 
           const linhas = [];
-          linhas.push("*Novo pedido — Santo Lanche*");
+          if (cart.length > 0) {
+            linhas.push("*Novo pedido — Santo Lanche*");
+          } else {
+            linhas.push("*Novo contato — Santo Lanche*");
+          }
           linhas.push("");
           linhas.push(`Nome: ${form.name}`);
           linhas.push(`Telefone: ${form.phone}`);
@@ -161,31 +497,29 @@
               );
             });
             linhas.push("");
+            linhas.push(
+              `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`
+            );
+            linhas.push(
+              `Entrega: ${
+                deliveryFee === 0
+                  ? "Grátis"
+                  : "R$ " + deliveryFee.toFixed(2).replace(".", ",")
+              }`
+            );
+            linhas.push(
+              `Total: *R$ ${total.toFixed(2).replace(".", ",")}*`
+            );
+            linhas.push("");
           }
 
-          linhas.push(
-            `Subtotal: R$ ${subtotal.toFixed(2).replace(".", ",")}`
-          );
-          linhas.push(
-            `Entrega: ${
-              deliveryFee === 0
-                ? "Grátis"
-                : "R$ " + deliveryFee.toFixed(2).replace(".", ",")
-            }`
-          );
-          linhas.push(
-            `Total: *R$ ${total.toFixed(2).replace(".", ",")}*`
-          );
-          linhas.push("");
-          linhas.push("Enviado pelo site santolanche.netlify.app");
+          linhas.push("Enviado pelo site santo-lanche.vercel.app");
 
           const mensagem = encodeURIComponent(linhas.join("\n"));
           const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`;
 
-          // abre o WhatsApp em nova aba
           window.open(url, "_blank");
 
-          // comportamento antigo (limpar carrinho e toast)
           clearCart();
           setCheckoutOpen(false);
           setOrderConfirmed(order);
