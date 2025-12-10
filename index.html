@@ -15,16 +15,15 @@
     <!-- Babel para entender JSX no navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-MFECTJTHLM"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <!-- Google tag (gtag.js) - GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MFECTJTHLM"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-MFECTJTHLM');
+    </script>
 
-  gtag('config', 'G-MFECTJTHLM');
-</script>
-    
   </head>
   <body class="bg-gray-50">
     <div id="root"></div>
@@ -414,6 +413,7 @@
         const [filterTag, setFilterTag] = useState("");
         const [checkoutOpen, setCheckoutOpen] = useState(false);
         const [orderConfirmed, setOrderConfirmed] = useState(null);
+        const [abandonmentTracked, setAbandonmentTracked] = useState(false);
 
         // carregar carrinho do localStorage
         useEffect(() => {
@@ -427,14 +427,191 @@
           }
         }, []);
 
-        // salvar carrinho a cada mudança
+        // salvar carrinho a cada mudança + marcar atividade do carrinho
         useEffect(() => {
           try {
             localStorage.setItem("cart_v1", JSON.stringify(cart));
+            if (cart.length > 0) {
+              localStorage.setItem("cart_last_active", Date.now().toString());
+              localStorage.setItem("cart_status", "active");
+              setAbandonmentTracked(false);
+            }
           } catch (e) {
             console.error(e);
           }
         }, [cart]);
+
+        // GA: view_item_list ao carregar a lista de produtos
+        useEffect(() => {
+          try {
+            if (typeof gtag === "function") {
+              const items = products.map((p, index) => ({
+                item_id: p.id,
+                item_name: p.name,
+                item_category: p.category,
+                price: p.price,
+                index,
+              }));
+              gtag("event", "view_item_list", {
+                item_list_id: "cardapio_santo_lanche",
+                item_list_name: "Cardápio Santo Lanche",
+                items,
+              });
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }, [products]);
+
+        // Monitor de abandono de carrinho (30 minutos de inatividade)
+        useEffect(() => {
+          const interval = setInterval(() => {
+            try {
+              if (cart.length === 0) return;
+
+              const status = localStorage.getItem("cart_status");
+              if (status !== "active") return;
+
+              const lastActiveStr = localStorage.getItem("cart_last_active");
+              if (!lastActiveStr) return;
+
+              const lastActive = parseInt(lastActiveStr, 10);
+              if (Number.isNaN(lastActive)) return;
+
+              const now = Date.now();
+              const diff = now - lastActive;
+              const THIRTY_MINUTES = 30 * 60 * 1000;
+
+              if (diff > THIRTY_MINUTES && !abandonmentTracked) {
+                if (typeof gtag === "function") {
+                  gtag("event", "cart_abandonment", {
+                    value: cart.reduce((s, i) => s + i.price * i.qty, 0),
+                    currency: "BRL",
+                    items: cart.map((i) => ({
+                      item_id: i.id,
+                      item_name: i.name,
+                      price: i.price,
+                      quantity: i.qty,
+                    })),
+                  });
+                }
+                localStorage.setItem("cart_status", "abandoned");
+                setAbandonmentTracked(true);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }, 60000); // verifica a cada 60s
+
+          return () => clearInterval(interval);
+        }, [cart, abandonmentTracked]);
+
+        function trackAddToCart(product, qty) {
+          try {
+            if (typeof gtag === "function") {
+              gtag("event", "add_to_cart", {
+                currency: "BRL",
+                value: product.price * qty,
+                items: [
+                  {
+                    item_id: product.id,
+                    item_name: product.name,
+                    item_category: product.category,
+                    price: product.price,
+                    quantity: qty,
+                  },
+                ],
+              });
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        function trackRemoveFromCart(item) {
+          try {
+            if (typeof gtag === "function") {
+              gtag("event", "remove_from_cart", {
+                currency: "BRL",
+                value: item.price * item.qty,
+                items: [
+                  {
+                    item_id: item.id,
+                    item_name: item.name,
+                    item_category: item.category,
+                    price: item.price,
+                    quantity: item.qty,
+                  },
+                ],
+              });
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        function trackViewCart() {
+          try {
+            if (typeof gtag === "function") {
+              gtag("event", "view_cart", {
+                currency: "BRL",
+                value: cart.reduce((s, i) => s + i.price * i.qty, 0),
+                items: cart.map((i) => ({
+                  item_id: i.id,
+                  item_name: i.name,
+                  item_category: i.category,
+                  price: i.price,
+                  quantity: i.qty,
+                })),
+              });
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        function trackBeginCheckout() {
+          try {
+            if (typeof gtag === "function") {
+              gtag("event", "begin_checkout", {
+                currency: "BRL",
+                value: cart.reduce((s, i) => s + i.price * i.qty, 0),
+                items: cart.map((i) => ({
+                  item_id: i.id,
+                  item_name: i.name,
+                  item_category: i.category,
+                  price: i.price,
+                  quantity: i.qty,
+                })),
+              });
+            }
+            localStorage.setItem("cart_status", "checkout");
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        function trackPurchase(order) {
+          try {
+            if (typeof gtag === "function") {
+              gtag("event", "purchase", {
+                transaction_id: order.id,
+                currency: "BRL",
+                value: order.total,
+                items: order.items.map((i) => ({
+                  item_id: i.id,
+                  item_name: i.name,
+                  item_category: i.category,
+                  price: i.price,
+                  quantity: i.qty,
+                })),
+              });
+            }
+            localStorage.setItem("cart_status", "completed");
+          } catch (e) {
+            console.error(e);
+          }
+        }
 
         function addToCart(product, qty = 1) {
           setCart((prev) => {
@@ -446,6 +623,7 @@
             }
             return [...prev, { ...product, qty }];
           });
+          trackAddToCart(product, qty);
           setIsCartOpen(true);
         }
 
@@ -455,11 +633,38 @@
         }
 
         function removeFromCart(id) {
-          setCart((prev) => prev.filter((p) => p.id !== id));
+          setCart((prev) => {
+            const item = prev.find((p) => p.id === id);
+            if (item) {
+              trackRemoveFromCart(item);
+            }
+            return prev.filter((p) => p.id !== id);
+          });
         }
 
         function clearCart() {
           setCart([]);
+          try {
+            localStorage.setItem("cart_status", "cleared");
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        function toggleCart() {
+          setIsCartOpen((s) => {
+            const newState = !s;
+            if (newState) {
+              trackViewCart();
+            }
+            return newState;
+          });
+        }
+
+        function openCheckout() {
+          if (cart.length === 0) return;
+          trackBeginCheckout();
+          setCheckoutOpen(true);
         }
 
         const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -524,12 +729,16 @@
             linhas.push("");
           }
 
-          linhas.push("Enviado pelo site santo-lanche.vercel.app");
+          linhas.push("Enviado pelo site santo-lanche.netlify.app");
 
           const mensagem = encodeURIComponent(linhas.join("\n"));
           const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${mensagem}`;
 
+          // abre o WhatsApp
           window.open(url, "_blank");
+
+          // rastreia compra no GA4
+          trackPurchase(order);
 
           clearCart();
           setCheckoutOpen(false);
@@ -561,15 +770,17 @@
               <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center py-4">
                   <div className="flex items-center gap-4">
-                   <div class="flex items-center gap-4">
-  <img src="/imagens/logo.png" alt="Santo Lanche" class="w-12 h-12 rounded-full object-cover" />
-
-  <div>
-    <h1 class="text-xl font-extrabold">Santo Lanche</h1>
-    <p class="text-sm text-gray-500">Delivery & Retirada — Aberto hoje</p>
-  </div>
-</div>
-                    
+                    <img
+                      src="/imagens/logo.png"
+                      alt="Santo Lanche"
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                    <div>
+                      <h1 className="text-xl font-extrabold">Santo Lanche</h1>
+                      <p className="text-sm text-gray-500">
+                        Delivery &amp; Retirada — Aberto hoje
+                      </p>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -598,7 +809,7 @@
 
                     {/* botão carrinho */}
                     <button
-                      onClick={() => setIsCartOpen((s) => !s)}
+                      onClick={toggleCart}
                       className="relative bg-indigo-600 text-white px-3 py-2 rounded-md text-sm flex items-center gap-2"
                       aria-label="Abrir carrinho"
                     >
@@ -851,10 +1062,7 @@
 
                   <div className="mt-4 flex gap-2">
                     <button
-                      onClick={() => {
-                        setCheckoutOpen(true);
-                        setIsCartOpen(false);
-                      }}
+                      onClick={openCheckout}
                       disabled={cart.length === 0}
                       className={`flex-1 px-4 py-2 rounded-md font-semibold ${
                         cart.length === 0
@@ -1018,7 +1226,7 @@
                     </div>
 
                     <button
-                      onClick={() => setCheckoutOpen(true)}
+                      onClick={openCheckout}
                       className="px-4 sm:px-6 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
                     >
                       Finalizar pedido
@@ -1036,9 +1244,3 @@
     </script>
   </body>
 </html>
-
-
-
-
-
-
