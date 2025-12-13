@@ -5,10 +5,7 @@
   <title>Santo Lanche — Pedido Interno</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- React -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -18,24 +15,24 @@
 <div id="root"></div>
 
 <script type="text/babel">
-const { useState, useEffect } = React;
+const { useState } = React;
 
-/* ================= CONFIG ================= */
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxS9dpPKEm1QtXk1cekGja62XG2OKJe27faSuarw_wxNChHyjZY0qB__490RG619W2tOg/exec";
+/* ===== CONFIG ===== */
+const SHEETS_URL =
+  "https://script.google.com/macros/s/AKfycbxS9dpPKEm1QtXk1cekGja62XG2OKJe27faSuarw_wxNChHyjZY0qB__490RG619W2tOg/exec";
 
-/* ================= APP ================= */
+/* ===== APP ===== */
 function App() {
 
   const params = new URLSearchParams(window.location.search);
   const mesaQR = params.get("mesa");
-
   const origem = mesaQR ? "QR" : "GARCOM";
 
   const [cart, setCart] = useState([]);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [confirmado, setConfirmado] = useState(false);
+  const [erro, setErro] = useState("");
 
-  /* ===== CARDÁPIO (VOCÊ PODE COLAR O COMPLETO DEPOIS) ===== */
   const products = [
     { id:"santo", name:"Santo Burguer", price:19, img:"/imagens/santo-burguer.jpeg" },
     { id:"oklahoma", name:"Oklahoma Smash", price:20, img:"/imagens/oklahoma-smash.jpeg" },
@@ -56,28 +53,40 @@ function App() {
 
   const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
 
-  function handleCheckout(form){
+  async function handleCheckout(form){
+    setErro("");
+
     const order = {
       id: "PED-" + Date.now(),
-      origem,
-      mesa: mesaQR || form.mesa || "",
-      garcom: form.garcom || "",
-      observacoes: form.obs || "",
+      customer: {
+        name: origem === "QR" ? `Mesa ${mesaQR}` : "Pedido Garçom",
+        phone: "",
+        address: mesaQR ? `Mesa ${mesaQR}` : `Mesa ${form.mesa}`,
+        payment: "INTERNO"
+      },
       items: cart,
-      total,
-      createdAt: new Date().toISOString()
+      subtotal: total,
+      deliveryFee: 0,
+      total: total
     };
 
-    fetch(SHEETS_URL,{
-      method:"POST",
-      mode:"no-cors",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(order)
-    });
+    try {
+      const res = await fetch(SHEETS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(order)
+      });
 
-    setCart([]);
-    setCheckoutOpen(false);
-    setConfirmado(true);
+      if (!res.ok) throw new Error("Falha ao enviar");
+
+      setCart([]);
+      setCheckoutOpen(false);
+      setConfirmado(true);
+
+    } catch (e) {
+      setErro("Erro ao enviar pedido. Tente novamente.");
+      console.error(e);
+    }
   }
 
   return (
@@ -89,7 +98,7 @@ function App() {
         <div>
           <h1 className="text-xl font-bold">Santo Lanche</h1>
           <p className="text-sm text-gray-600">
-            {origem === "QR" ? `Pedido da Mesa ${mesaQR}` : "Modo Garçom"}
+            {origem === "QR" ? `Mesa ${mesaQR}` : "Modo Garçom"}
           </p>
         </div>
       </header>
@@ -130,40 +139,24 @@ function App() {
           <form
             onSubmit={e=>{
               e.preventDefault();
-              const f = Object.fromEntries(new FormData(e.target));
-              handleCheckout(f);
+              handleCheckout(Object.fromEntries(new FormData(e.target)));
             }}
             className="bg-white p-6 rounded w-full max-w-md space-y-3">
 
             {!mesaQR && (
-              <input
-                name="mesa"
-                placeholder="Mesa"
-                required
+              <input name="mesa" placeholder="Mesa" required
                 className="w-full border p-2 rounded"/>
             )}
 
-            {origem === "GARCOM" && (
-              <input
-                name="garcom"
-                placeholder="Nome do garçom"
-                className="w-full border p-2 rounded"/>
-            )}
-
-            <textarea
-              name="obs"
-              placeholder="Observações"
-              className="w-full border p-2 rounded"/>
-
-            <button
-              className="w-full bg-green-600 text-white py-2 rounded">
+            <button className="w-full bg-green-600 text-white py-2 rounded">
               Enviar para cozinha
             </button>
+
+            {erro && <p className="text-red-600 text-sm">{erro}</p>}
           </form>
         </div>
       )}
 
-      {/* CONFIRMAÇÃO */}
       {confirmado && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white shadow p-4 rounded">
           Pedido enviado com sucesso
